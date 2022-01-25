@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Biblioteca Virtual Ahoy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Krub:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preload" href="/css/style.css" as="style">
+    <link rel="stylesheet" href="/css/normalize.css">
+    <link rel="stylesheet" href="/css/style.css">
+  </head>
+  <body>
+    <header>
+      <h1 class="title">Biblioteca Virtual <span>Ahoy</span></h1>
+    </header>
+
+    <div class="nav-bg">
+      <nav class="principal-nav container">
+        <a href="admin-index.html">Inicio</a>
+        <a href="admin-books.html">Ve libros disponibles</a>
+        <a href="admin-mybooks.html">Ve libros prestados</a>
+        <a href="#">Admin Tools</a>
+      </nav>
+
+    </div>
+
+    <main class="container">
+      <h2>Lista de Libros Prestado</h2>
+      <div id="books" class="grid grid3">
+
+    </div>
+  </main>
+    <script type="text/javascript">
+    let books = document.querySelector('#books');
+
+    async function loadBooks(){
+      const response = await fetch("/api.php/libros/veradmin");
+      const names = await response.json();
+
+      for (let i = 0; i < names.length ; i++) {
+          console.log();
+          const datos = document.createElement('DIV');
+          datos.classList.add('shadow');
+          datos.classList.add('card');
+          datos.innerHTML = `<img class="book" src="../img/book.png" alt="">
+                             <h4>${names[i].title}</h4>
+                             <p>${names[i].author}</p>
+                             <p>${names[i].taken}</p>`
+          books.appendChild(datos);
+      }
+    }
+    async function sesion(){
+      const response = await fetch("/api.php/usuario/session");
+      const names = await response.json();
+      if(names !== null){
+        if(names.name === "admin"){
+          loadBooks();
+        }
+        else{
+          document.location.href = "index.html";
+
+        }
+      }
+      else{
+        document.location.href = "index.html";
+      }
+    }
+    sesion();
+    </script>
+
+    </body>
+  </html>

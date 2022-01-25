@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Biblioteca Virtual Ahoy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Krub:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preload" href="/css/style.css" as="style">
+    <link rel="stylesheet" href="/css/normalize.css">
+    <link rel="stylesheet" href="/css/style.css">
+  </head>
+  <body>
+    <header>
+      <h1 class="title">Biblioteca Virtual <span>Ahoy</span></h1>
+    </header>
+
+    <div class="nav-bg">
+      <nav class="principal-nav container">
+        <a href="index.html">Inicio</a>
+        <a href="books.html">Libros Disponibles</a>
+        <a href="mybooks.html">Tus libros</a>
+      </nav>
+    </div>
+
+    <main class="container">
+      <h2>Lista de tus Libros Pedidos</h2>
+      <h2 class="msg"></h2>
+      <div id="books" class="grid grid3">
+
+    </div>
+  </main>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript">
+    const books = document.querySelector('#books');
+    const msg = document.querySelector(".msg");
+
+    async function loadBooks(){
+      const response = await fetch("/api.php/libros/pedidos");
+      const names = await response.json();
+
+      const msg = document.querySelector(".msg");
+
+      if(document.location.search === "?msg=success"){
+        msg.innerHTML = `<center class="success"> Libro Entregado de forma correcta <center>`;
+      }
+      else if (document.location.search === "?msg=failure") {
+        msg.innerHTML = `<center class="failure"> Libro NO Entregado <center>`;
+      }
+      else if(document.location.search === ""){
+
+      }
+      else{
+        msg.innerHTML = `<center class="failure"> Este mensaje no debería estar aquí <center>`;
+      }
+      setTimeout(function() {
+        msg.remove();
+      } ,5000);
+      for (let i = 0; i < names.length ; i++) {
+        if (names[i].taken !== "0") {
+          const datos = document.createElement('DIV');
+          datos.classList.add('shadow');
+          datos.classList.add('card');
+          datos.innerHTML = `<img class="book" src="../img/book.png" alt="">
+                             <h4>${names[i].title}</h4>
+                             <p>${names[i].author}</p>`
+
+          datos.onclick = function() {
+            mostrarLibro(names[i]);
+           }
+          books.appendChild(datos);
+        }
+      }
+
+    }
+    function mostrarLibro(object) {
+      const libro = document.createElement('DIV');
+      libro.innerHTML = `<div class="container">
+                          <img class="book" src="/img/book.png" alt="">
+                        </div>
+
+                        <div class="container center">
+                          <h3>${object.title}</h3>
+                          <p>${object.author}</p>
+                          <p>${object.isbn}</p>
+                          <a class="button">Devuelve tu libro</a>
+                          <a id=msg></a>
+                        </div>`
+
+    const overlay = document.createElement("DIV");
+    overlay.appendChild(libro);
+    overlay.classList.add("overlay");
+    overlay.classList.add("shadow");
+
+    const cerrarModal = document.createElement("P");
+    cerrarModal.textContent = "X";
+    cerrarModal.classList.add("btn-close");
+    cerrarModal.onclick = function() {
+      overlay.remove();
+      const body = document.querySelector("body");
+      body.classList.remove("fijate-body");
+    }
+    overlay.appendChild(cerrarModal);
+
+    const body = document.querySelector("body");
+    body.appendChild(overlay);
+    body.classList.add("fijate-body");
+    $( ".button" ).click(function() {
+      $.post( "../api.php/libros/devolver", { isbn: object.isbn })
+      .done(function( data ) {
+        if (data.result === true) {
+          $("#msg").html(`<center class="success"> ${data.msg} <center>`);
+          setTimeout(function() {
+            document.location.href = "mybooks.html?msg=success";
+          } ,1000);
+        }
+        else{
+          $("#msg").html(`<center class="failure"> ${data.msg} <center>`);
+          setTimeout(function() {
+            document.location.href = "mybooks.html?msg=failure";
+          } ,1000);
+        }
+      });
+    });
+    }
+    async function sesion(){
+      const response = await fetch("/api.php/usuario/session");
+      const names = await response.json();
+      if(names !== null){
+        loadBooks();
+      }
+      else{
+        const error = document.createElement("DIV");
+        error.innerHTML = `<h2>Debes logearte para ver tus libros</h2>
+                            <div class="flex center-flex">
+                              <a class="button" href="login.html">Logeate</a>
+                              <p> ó </p>
+                              <a class="button" href="register.html">Registrate</a>
+                            </div>`
+        document.querySelector(".msg").appendChild(error);
+
+      }
+    }
+    sesion();
+    </script>
+    <script type="text/javascript" src="/js/app.js"></script>
+    </body>
+  </html>
